@@ -1,14 +1,25 @@
 
-//require('dotenv').config(); this is valid but not maintains consistency bcz we are using module type
+//require('dotenv').config(); only this single line is valid but not maintains consistency
+//  bcz we are using module type
 
+// isliye ye itna tamjham karna pada hai
 import dotenv from 'dotenv';
 import connectDb from '../db/index.js';
+import app from './app.js'
 
 dotenv.config({
     path:'/.env'
 })
 
-connectDb();
+connectDb()
+.then(()=>{
+  app.listen(process.env.PORT,()=>{
+    console.log(`Listening at:${process.env.PORT}`)
+  })
+})
+.catch((err)=>{
+console.log("MongoDb connection Failed !!!", err);
+})
 
 
 
