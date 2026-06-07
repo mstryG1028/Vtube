@@ -22,4 +22,14 @@ app.use(cookieParser());// used to send and accept cookies-data
 
 //--------THESE ARE THE CONFIGURATION FOR EXPRESS-------------------
 
+//Routes import
+import  userRouter from './routes/user.routes.js';
+
+//Routes Declaration
+// app.use("/users",userRouter); // jab bhi user "/user" pe jaayega to ye fn  directly userRouter ko control de dega jiska logic router me likha ha
+app.use("/api/v1/users",userRouter); // ye industry standard hai
+
+
+
+
 export { app };

@@ -2,3 +2,7 @@
 ex:
 - nodemon
 - prettier -(used for formatting files)
+
+NOTE:
+1. if we export as export default xyz --> then we must import xyz from 'xyz';
+2. if we export as export {xyz} --> then import {xyz} from 'xyz';

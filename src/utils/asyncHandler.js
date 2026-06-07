@@ -1,8 +1,17 @@
+// const asyncHandler = (requestHandler) => {
+//   (req, res, next) => {
+//     Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err));
+//   };
+// };
+
+//assignment what above method do and why above method is not correct
 const asyncHandler = (requestHandler) => {
-  (req, res, next) => {
+  return (req, res, next) => {
     Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err));
   };
 };
+
+
 
 // sometimes this format is used
 
@@ -12,8 +21,6 @@ const asyncHandler = (requestHandler) => {
 // 1. Takes another function as an argument, OR
 // 2. Returns a function, OR
 // 3. Both
-
-
 
 // const asyncHandler = (fn) => (req,res,next) => {
 // try{

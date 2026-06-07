@@ -4,11 +4,11 @@
 
 // isliye ye itna tamjham karna pada hai
 import dotenv from 'dotenv';
-import connectDb from '../db/index.js';
-import app from './app.js'
+import connectDb from './db/index.js';
+import {app} from './app.js';
 
 dotenv.config({
-    path:'/.env'
+    path:'.env'
 })
 
 connectDb()
