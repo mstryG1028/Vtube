@@ -19,7 +19,7 @@ const userSchema = new Schema(
       lowerCase: true,
       trim: true,
     },
-    fullName: {
+    fullname: {
       type: String,
       required: true,
       unique: true,
@@ -55,19 +55,27 @@ const userSchema = new Schema(
 
 // these are the hooks in mongoose which is used to trigger after or before saving data // assignment
 //Note : dont use arrow fn here bcz it doesnt support this ref
-userSchema.pre("save", async function (next) {
+// userSchema.pre("save", async function (next) {
+//   if (!this.isModified("password")) {
+//     // modifieid is built in method to check is this pass is modified or not
+//     // if we dont use if condition here then every time
+//     //  when we store or change data, password will hashed
+//     return next();
+//   }
+//   this.password =await  bcrypt.hash(this.password, 10);
+//   next();
+// });
+// upar waala fn bilkul corrcet hai but modern code me async ke sath next ka use ni karte next id not a fn err will throw
+
+userSchema.pre("save", async function () {
   if (!this.isModified("password")) {
-    // modifieid is built in method to check is this pass is modified or not
-    // if we dont use if condition here then every time
-    //  when we store or change data, password will hashed
-    return next();
+    return;
   }
-  this.password = bcrypt.hash(this.password, 10);
-  next();
+  this.password = await bcrypt.hash(this.password, 10);
 });
 
 // we can pas any no of methods in userSchema
-// we can write these methods in diff file also but every time we have to pass user.password to validate 
+// we can write these methods in diff file also but every time we have to pass user.password to validate
 // but here we only need this.pass here (this===Curruser)
 // it make code cleaner and reusable
 userSchema.methods.isPasswordCorrect = async function (password) {

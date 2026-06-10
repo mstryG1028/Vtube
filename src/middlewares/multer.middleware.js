@@ -7,18 +7,18 @@ import multer from "multer";
 //isliye always use this 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, '/tmp/my-uploads')// null describe there is no err
+    cb(null, './public/temp')// null describe there is no err
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9)
-    cb(null, file.fieldname + '-' + uniqueSuffix) // here also
+    cb(null, file.fieldname  + uniqueSuffix) // here also
     //return cb(null,`${file.originalname}`); // bhi likh sakte hai but filename override ho jaayega
   }
 })
 
 const upload = multer({ storage: storage })
 
-
+export {upload};
 
 
 

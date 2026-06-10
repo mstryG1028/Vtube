@@ -6,3 +6,5 @@ ex:
 NOTE:
 1. if we export as export default xyz --> then we must import xyz from 'xyz';
 2. if we export as export {xyz} --> then import {xyz} from 'xyz';
+
+url is:"localhost:8000/api/v1/.."

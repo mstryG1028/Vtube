@@ -10,7 +10,6 @@ cloudinary.config({
 });
 
 // fn to upload file on cloudinary
-
 const uploadOnCloudinary = async (localFilePath) => {
   try {
     if (!localFilePath) return null;
@@ -23,7 +22,12 @@ const uploadOnCloudinary = async (localFilePath) => {
     console.log("file uploaded", response.url); // assignment
     return response;
   } catch (error) {
-    fs.unlinkSync(localFilePath); // it will remove locally saved temp file as upload oprt get failed
+    console.log("Cloudinary Error =>", error);
+
+    if (fs.existsSync(localFilePath)) {
+      fs.unlinkSync(localFilePath);
+    }
+
     return null;
   }
 };
