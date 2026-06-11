@@ -1,6 +1,6 @@
 import multer from "multer";
 
-// const upload=multer({dest:"uploads"});// ye fn  store to kar deta hai hai uploads me
+// const upload=multer({dest:"uploads"});// ye fn  store to kar deta hai hai uploads me (local server)
 //  but hum usko read nhi kar sakte to uska koi use nhi rha
 
 

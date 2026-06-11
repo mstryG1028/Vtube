@@ -10,8 +10,9 @@ const registerUser = asyncHandler(async (req, res) => {
   //step 1-->----- get user details from frontend-------------
   const { fullname, username, email, password } = req.body; // req.body form ya phit json data ko acces karta hai
 
-  console.log("BODY =>", req.body);
-  //step 2-->----- validation-------------
+  // console.log("req.files =>", req.body);
+
+  //step 2-->----- validation ( check weather any field is empty )-------------
 
   // ye beginners ke liye hai aise hi password email sabke liye check kar lena hai if lga ke
   // if(fullName===""){
@@ -27,7 +28,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(400, "all Fields are Required");
   }
 
-  //step 3-->----- check if user exist or not-------------
+  //step 3-->----- check if user ( with curr email or username ) exist or not-------------
 
   // we can use this but it will behave like $AND ( if both exist then only return true )
   // const existedUser = User.findOne({ email, username });
@@ -41,17 +42,29 @@ const registerUser = asyncHandler(async (req, res) => {
   if (existedUser) {
     throw new ApiError(409, "User with this username or email exist");
   }
-  console.log("FILES =>", req.files);
+  //console.log("FILES =>", req.files); // assignment read this
 
   // step 4--->  ------- check for files(here image and avatar) ------------
-
+// yahan hum req.files se avatar and coverimage ka url extract kar rhe hai
+//  and usko  cloudinary pe upload kar rhe hai
+  // optional chaining // Assignment
   const avatarLocalPath = req.files?.avatar[0]?.path;
-  const coverImageLocalPath = req.files?.coverImage[0]?.path;
+  // const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+  // the above way to check coverImage was giving undefined err thats why
+  // this is manual way to check
+  let coverImageLocalPath;
+  if (
+    req.files &&
+    Array.isArray(req.files.coverImage) &&
+    req.files.coverImage.length > 0
+  ) {
+    coverImageLocalPath = req.files.coverImage[0].path;
+  }
 
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
   }
-
 
   // step 5:--->  ----- upload them to cloudinary------
   const avatar = await uploadOnCloudinary(avatarLocalPath); // uploadOnCloudinary is method which is already defined in utils
