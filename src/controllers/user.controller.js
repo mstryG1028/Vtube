@@ -45,8 +45,8 @@ const registerUser = asyncHandler(async (req, res) => {
   //console.log("FILES =>", req.files); // assignment read this
 
   // step 4--->  ------- check for files(here image and avatar) ------------
-// yahan hum req.files se avatar and coverimage ka url extract kar rhe hai
-//  and usko  cloudinary pe upload kar rhe hai
+  // yahan hum req.files se avatar and coverimage ka url extract kar rhe hai
+  //  and usko  cloudinary pe upload kar rhe hai
   // optional chaining // Assignment
   const avatarLocalPath = req.files?.avatar[0]?.path;
   // const coverImageLocalPath = req.files?.coverImage[0]?.path;
@@ -112,4 +112,93 @@ const registerUser = asyncHandler(async (req, res) => {
 // routes me suffix path like regiter, login
 // /users/login pe kya karna hai wo controller me
 
-export { registerUser };
+
+
+//----------LOGIN PROCESS-------------
+
+const loginUser = asyncHandler(async (req, res) => {
+  // step-1 -----get data from req.body----
+  const { username, email, password } = req.body;
+
+  if (!username || !email) {
+    throw new ApiError(400, "username or email is required");
+  }
+
+  // step-2 ---------use email or username to login---------
+  const user = await User.findOne({
+    $or: [{ username }, { email }],
+  });
+
+  // step-3 ---------find user---------
+  if (!user) {
+    throw new ApiError(404, "User not Exist");
+  }
+
+  // step-4 ---------check password---------
+
+  const isPasswordValid = await user.isPasswordCorrect(password);
+  if (!isPasswordValid) {
+    throw new ApiError(404, "Incorrect Password");
+  }
+
+  // step-5 ---------generate access and refreshToken---------
+
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+    user._id
+  ); //jab bhi hume dikh rha hai ki db use ho rha hai to await use karlo
+
+  // step-6 ---------send token in form of cookies---------
+  const loggedInUser = await User.findById(user._id).select(
+    "-password -refreshToken"
+  ); // assignment why this is created and what else we can do (like updating object)
+  // .select("") use hota hai curr object ka konsa values ignore karna hai
+
+  const options = {
+    // these cookies can be modified by any user from frontend if we dont use these 2
+    // now it can be only modified by server
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+      new ApiResponse(
+        200,
+        {
+          user: loggedInUser,
+          accessToken,
+          refreshToken, // Assignment why these if already send in cookies
+        },
+        "User LoggedIn SuccessFully"
+      )
+    );
+});
+
+// ------logOut User----------
+
+const logoutUser=asyncHandler(async(req,res)=>{
+  await User.find
+})
+
+// jab bhi hum iss method ko call karenge ye automatically refresh and AccessToken de dega
+const generateAccessAndRefreshTokens = async (userId) => {
+  try {
+    const user = await User.findById(userId);
+    const refreshToken = user.generateAccessToken();
+    const accessToken = user.generateAccessToken();
+
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
+
+    return { accessToken, refreshToken };
+  } catch (error) {
+    throw new ApiError(
+      500,
+      "Something went wrong while generating access and refresh Token"
+    );
+  }
+};
+
+export { registerUser,loginUser,logoutUser };

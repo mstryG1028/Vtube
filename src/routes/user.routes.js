@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
+import { registerUser,loginUser, logoutUser } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 
 const router = Router();
@@ -18,7 +18,12 @@ router.route("/register").post(
   ]),
   registerUser
 );
-// iska add /users/register ho jaayega kyunki yahan pe hum directly nhi aa rhe hai
+
+// iska address /users/register ho jaayega kyunki yahan pe hum directly nhi aa rhe hai
 // hum aa rhe hai app.js ke app.use() se jahan pe already "/user" defined hai
 
+
+router.route("/login").post(loginUser)
+
+router.route("/logout").post(logoutUser)
 export default router;
