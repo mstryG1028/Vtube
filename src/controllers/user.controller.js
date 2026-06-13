@@ -3,6 +3,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import jwt from "jsonwebtoken";
 
 const registerUser = asyncHandler(async (req, res) => {
   // steps to create registerUser
@@ -49,6 +50,7 @@ const registerUser = asyncHandler(async (req, res) => {
   //  and usko  cloudinary pe upload kar rhe hai
   // optional chaining // Assignment
   const avatarLocalPath = req.files?.avatar[0]?.path;
+
   // const coverImageLocalPath = req.files?.coverImage[0]?.path;
 
   // the above way to check coverImage was giving undefined err thats why
@@ -112,15 +114,13 @@ const registerUser = asyncHandler(async (req, res) => {
 // routes me suffix path like regiter, login
 // /users/login pe kya karna hai wo controller me
 
-
-
 //----------LOGIN PROCESS-------------
 
 const loginUser = asyncHandler(async (req, res) => {
   // step-1 -----get data from req.body----
   const { username, email, password } = req.body;
 
-  if (!username || !email) {
+  if (!(username || email)) {
     throw new ApiError(400, "username or email is required");
   }
 
@@ -177,16 +177,11 @@ const loginUser = asyncHandler(async (req, res) => {
 });
 
 // ------logOut User----------
-
-const logoutUser=asyncHandler(async(req,res)=>{
-  await User.find
-})
-
 // jab bhi hum iss method ko call karenge ye automatically refresh and AccessToken de dega
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
     const user = await User.findById(userId);
-    const refreshToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
     const accessToken = user.generateAccessToken();
 
     user.refreshToken = refreshToken;
@@ -201,4 +196,83 @@ const generateAccessAndRefreshTokens = async (userId) => {
   }
 };
 
-export { registerUser,loginUser,logoutUser };
+const logoutUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndUpdate(
+    req.user._id,
+    {
+      $set: {
+        refreshToken: undefined,
+      },
+    },
+    {
+      new: true,
+    }
+  );
+  const options = {
+    // these cookies can be modified by any user from frontend if we dont use these 2
+    // now it can be only modified by server
+    httpOnly: true,
+    secure: true,
+  };
+  return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(new ApiResponse(200, {}, "User Logged Out"));
+});
+
+// whenever the token acces time is expired then user will get 404 token expired
+// therefore we have generate/ or refresh that token , so user dont need to login every time by giving email ,pass
+
+// given fn will do the fn of refreshing token
+// there are 2 type of token(Access,Refresh)
+//  refresh stored in db original form access is send to user in cookies encrypted format
+// when we generate new accessToken teh we also change RefreshToken in db
+
+const refreshAccessToken = asyncHandler(async (req, res) => {
+  const incomingRefreshToken =
+    req.cookies.refreshToken || req.body.refreshToken;
+  if (!incomingRefreshToken) {
+    throw new ApiError(401, "unauthorized request");
+  }
+
+  try {
+    const decodedToken = jwt.verify(
+      incomingRefreshToken,
+      process.env.REFRESH_TOKEN_SECRET
+    );
+
+    const user = User.findById(decodedToken?._id);
+
+    if (!user) {
+      throw new ApiError(401, "Invalid refresh token");
+    }
+
+    if (incomingRefreshToken !== user?.refreshToken) {
+      throw new ApiError(401, "Refresh Token is Expired");
+    }
+    const options = {
+      httpOnly: true,
+      secure: true,
+    };
+    const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(
+      user._id
+    );
+
+    return res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", newRefreshToken, options)
+      .json(
+        new ApiResponse(
+          200,
+          { accessToken, refreshToken: newRefreshToken },
+          "Access Token Refreshed"
+        )
+      );
+  } catch (error) {
+    throw new ApiError(401, error?.message || "invalid refresh token");
+  }
+});
+
+export { registerUser, loginUser, logoutUser,refreshAccessToken };

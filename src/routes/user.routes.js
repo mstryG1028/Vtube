@@ -1,7 +1,12 @@
 import { Router } from "express";
-import { registerUser,loginUser, logoutUser } from "../controllers/user.controller.js";
+import {
+  registerUser,
+  loginUser,
+  logoutUser,
+  refreshAccessToken,
+} from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
-
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 const router = Router();
 
 // there are some files like avatar and coverImage
@@ -22,8 +27,12 @@ router.route("/register").post(
 // iska address /users/register ho jaayega kyunki yahan pe hum directly nhi aa rhe hai
 // hum aa rhe hai app.js ke app.use() se jahan pe already "/user" defined hai
 
+router.route("/login").post(loginUser);
 
-router.route("/login").post(loginUser)
+router.route("/logout").post(verifyJWT, logoutUser);
 
-router.route("/logout").post(logoutUser)
+router.route("refresh-token").post(refreshAccessToken);
+
+
+
 export default router;
