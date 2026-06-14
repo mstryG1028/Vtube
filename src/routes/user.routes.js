@@ -13,7 +13,7 @@ const router = Router();
 // which should upload before registering any user
 //therefor middleware upload is injected before registerUser controller
 router.route("/register").post(
-  upload.fields([
+  upload.fields([ // multiple file hai isliye "fields" else "field"
     // here we are uploading only two file therefore we are using 2 objets
     // similarly we can upload multiple file by creating multiple objects
     // ek time pe ek hi file le (1 avatar, 1 coverimage) therefore maxCount=1
