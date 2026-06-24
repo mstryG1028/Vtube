@@ -443,9 +443,80 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
     throw new ApiError(404, "channel not exist");
   }
   return res
-  .status()
-  .json(new ApiResponse(200,channel[0],"User channel fetched successfully"))
+    .status()
+    .json(
+      new ApiResponse(200, channel[0], "User channel fetched successfully")
+    );
   console.log(channel);
+});
+
+const getWatchHistory = asyncHandler(async (req, res) => {
+  //NOTE:req.user._id --> gives just '8956639cjf4589hfj' but this is not actually id
+  // id is --> ObjectId('8956639cjf4589hfj')
+  // but due to mongoose it automatically converts just string into original _id
+  // but mongoose will not work in aggregation so we have to convert it manually
+
+  /*when we do const user = await User.findById(id);
+  mongoose return a mongoose document which consist Type casting,.save(), .populate() etc
+
+but when we do 
+const result = await User.aggregate([
+  { $match: { age: { $gte: 18 } } }
+]);
+Mongoose sends the pipeline directly to MongoDB and does not convert the results into Mongoose Documents.
+Instead, it returns plain JavaScript objects:
+[
+  {
+    _id: ObjectId("686a1234abcd5678ef901234"),
+    name: "John",
+    age: 25
+  }
+]
+*/
+
+  const user = await User.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(req.user._id), // manual conversion of string id into OjectId
+      },
+    },
+    {
+      $lookup: {
+        from: "videos",
+        localField: "watchHistory",
+        foreignField: "_id",
+        as: "watchHistory",
+        pipeline: [
+          {
+            $lookup: {
+              from: "users",
+              localField: "owner",
+              foreignField: "_id",
+              as: "owner",
+              pipeline: [
+                {
+                  $project: {
+                    fullname: 1,
+                    username: 1,
+                    avatar: 1,
+                  },
+                },
+              ],
+            },
+          },
+          {
+            $addFields: {
+              owner: {
+                $first: "$owner",
+              },
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  return res.status(200).json(new ApiResponse(200, user[0].watchHistory,"watch History fetched Sucessfully"));
 });
 
 export {
@@ -459,4 +530,5 @@ export {
   updateUserAvatar,
   updateUserCoverImage,
   getUserChannelProfile,
+  getWatchHistory,
 };

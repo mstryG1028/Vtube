@@ -1,3 +1,6 @@
+// this file is used only for start the application
+//before starting the application it connects to database
+
 
 //require('dotenv').config(); only this single line is valid but not maintains consistency
 //  bcz we are using module type
@@ -14,11 +17,11 @@ dotenv.config({
 connectDb()
 .then(()=>{
   app.listen(process.env.PORT,()=>{
-    console.log(`Listening at:${process.env.PORT}`)
+    console.log(`Listening at: ${process.env.PORT}`)
   })
 })
 .catch((err)=>{
-console.log("MongoDb connection Failed !!!", err);
+console.log("MongoDb connection Failed", err);
 })
 
 
